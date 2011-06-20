@@ -1,0 +1,122 @@
+CUDA_DIR=/usr/local/cuda
+
+CC=g++
+CCFLAGS=-I include -I $(CUDA_DIR)/include -g -rdynamic
+NVCC=$(CUDA_DIR)/bin/nvcc
+NVCCFLAGS=-arch sm_11 -I include -I $(CUDA_DIR)/include -g --compiler-options -rdynamic
+AR=ar cvr
+
+.SUFFIXES: .cpp .cu .o
+
+CRT_CPP_SRC=                        \
+src/Array.cpp                       \
+src/ChannelFormatDescriptor.cpp     \
+src/DeviceProperties.cpp            \
+src/Error.cpp                       \
+src/Event.cpp                       \
+src/Kernel.cpp                      \
+src/KernelConfiguration.cpp         \
+src/KernelParameters.cpp            \
+src/Runtime.cpp                     \
+src/Stream.cpp                      \
+src/String.cpp                      \
+
+CRT_CPP_OBJ=                        \
+obj/Array.cpp.o                     \
+obj/ChannelFormatDescriptor.cpp.o   \
+obj/DeviceProperties.cpp.o          \
+obj/Error.cpp.o                     \
+obj/Event.cpp.o                     \
+obj/Kernel.cpp.o                    \
+obj/KernelConfiguration.cpp.o       \
+obj/KernelParameters.cpp.o          \
+obj/Runtime.cpp.o                   \
+obj/Stream.cpp.o                    \
+obj/String.cpp.o                    \
+
+LIB_OUTPUT=lib/libcudacpp.a
+
+TESTS=                              \
+bin/cuda_Runtime_test               \
+bin/cuda_Kernel_test                \
+bin/cuda_Stream_test                \
+bin/cuda_Event_test                 \
+bin/cuda_DeviceProperties_test      \
+bin/cuda_Concurrency_test           \
+bin/cuda_Streaming_test             \
+
+CRT_OBJ=$(CRT_CPP_OBJ) $(CRT_CU_OBJ)
+
+all: $(TESTS) $(LIB_OUTPUT)
+
+bin/cuda_Runtime_test: lib/libcudacpp.a test/cuda_Runtime_test.cpp
+	$(CC) $(CCFLAGS) test/cuda_Runtime_test.cpp -c -o obj/cuda_Runtime_test.cpp.o
+	$(CC) -g -o bin/cuda_Runtime_test obj/cuda_Runtime_test.cpp.o -L $(CUDA_DIR)/lib64 -L lib -lcudacpp -loscpp -lcudart
+
+bin/cuda_Kernel_test: lib/libcudacpp.a test/cuda_Kernel_test.cpp test/cuda_Kernel_test.cu
+	$(CC) $(CCFLAGS) test/cuda_Kernel_test.cpp -c -o obj/cuda_Kernel_test.cpp.o
+	$(NVCC) $(NVCCFLAGS) test/cuda_Kernel_test.cu -c -o obj/cuda_Kernel_test.cu.o
+	$(CC) -g -o bin/cuda_Kernel_test obj/cuda_Kernel_test.cu.o obj/cuda_Kernel_test.cpp.o -L $(CUDA_DIR)/lib64 -L lib -lcudacpp -loscpp -lcudart
+
+bin/cuda_Stream_test: lib/libcudacpp.a test/cuda_Stream_test.cpp test/cuda_Stream_test.cu
+	$(CC) $(CCFLAGS) test/cuda_Stream_test.cpp -c -o obj/cuda_Stream_test.cpp.o
+	$(NVCC) $(NVCCFLAGS) test/cuda_Stream_test.cu -c -o obj/cuda_Stream_test.cu.o
+	$(CC) -g -o bin/cuda_Stream_test obj/cuda_Stream_test.cu.o obj/cuda_Stream_test.cpp.o -L $(CUDA_DIR)/lib64 -L lib -lcudacpp -loscpp -lcudart
+
+bin/cuda_Event_test: lib/libcudacpp.a test/cuda_Event_test.cpp test/cuda_Event_test.cu
+	$(CC) $(CCFLAGS) test/cuda_Event_test.cpp -c -o obj/cuda_Event_test.cpp.o
+	$(NVCC) $(NVCCFLAGS) test/cuda_Event_test.cu -c -o obj/cuda_Event_test.cu.o
+	$(CC) -g -o bin/cuda_Event_test obj/cuda_Event_test.cu.o obj/cuda_Event_test.cpp.o -L $(CUDA_DIR)/lib64 -L lib -lcudacpp -loscpp -lcudart
+
+bin/cuda_DeviceProperties_test: lib/libcudacpp.a test/cuda_DeviceProperties_test.cpp
+	$(CC) $(CCFLAGS) test/cuda_DeviceProperties_test.cpp -c -o obj/cuda_DeviceProperties_test.cpp.o
+	$(CC) -g -o bin/cuda_DeviceProperties_test obj/cuda_DeviceProperties_test.cpp.o -L $(CUDA_DIR)/lib64 -L lib -lcudacpp -loscpp -lcudart
+
+bin/cuda_Concurrency_test: lib/libcudacpp.a test/cuda_Concurrency_test.cpp test/cuda_Concurrency_test.cu
+	$(CC) $(CCFLAGS) test/cuda_Concurrency_test.cpp -c -o obj/cuda_Concurrency_test.cpp.o
+	$(NVCC) $(NVCCFLAGS) test/cuda_Concurrency_test.cu -c -o obj/cuda_Concurrency_test.cu.o
+	$(CC) -g -o bin/cuda_Concurrency_test obj/cuda_Concurrency_test.cu.o obj/cuda_Concurrency_test.cpp.o -L $(CUDA_DIR)/lib64 -L lib -lcudacpp -loscpp -lcudart
+
+bin/cuda_Streaming_test: lib/libcudacpp.a test/cuda_Streaming_test.cpp test/cuda_Streaming_test.cu
+	$(CC) $(CCFLAGS) test/cuda_Streaming_test.cpp -c -o obj/cuda_Streaming_test.cpp.o
+	$(NVCC) $(NVCCFLAGS) test/cuda_Streaming_test.cu -c -o obj/cuda_Streaming_test.cu.o
+	$(CC) -g -o bin/cuda_Streaming_test obj/cuda_Streaming_test.cu.o obj/cuda_Streaming_test.cpp.o -L $(CUDA_DIR)/lib64 -L lib -lcudacpp -loscpp -lcudart
+
+lib/libcudacpp.a: $(CRT_OBJ)
+	$(AR) $(LIB_OUTPUT) $(CRT_OBJ)
+
+obj/Array.cpp.o: src/Array.cpp include/cudacpp/Array.h
+	$(CC) $(CCFLAGS) src/Array.cpp -c -o obj/Array.cpp.o
+
+obj/ChannelFormatDescriptor.cpp.o: src/ChannelFormatDescriptor.cpp include/cudacpp/ChannelFormatDescriptor.h
+	$(CC) $(CCFLAGS) src/ChannelFormatDescriptor.cpp -c -o obj/ChannelFormatDescriptor.cpp.o
+
+obj/DeviceProperties.cpp.o: src/DeviceProperties.cpp include/cudacpp/DeviceProperties.h
+	$(CC) $(CCFLAGS) src/DeviceProperties.cpp -c -o obj/DeviceProperties.cpp.o
+
+obj/Error.cpp.o: src/Error.cpp include/cudacpp/Error.h
+	$(CC) $(CCFLAGS) src/Error.cpp -c -o obj/Error.cpp.o
+
+obj/Event.cpp.o: src/Event.cpp include/cudacpp/Event.h
+	$(CC) $(CCFLAGS) src/Event.cpp -c -o obj/Event.cpp.o
+
+obj/Kernel.cpp.o: src/Kernel.cpp include/cudacpp/Kernel.h
+	$(CC) $(CCFLAGS) src/Kernel.cpp -c -o obj/Kernel.cpp.o
+
+obj/KernelConfiguration.cpp.o: src/KernelConfiguration.cpp include/cudacpp/KernelConfiguration.h
+	$(CC) $(CCFLAGS) src/KernelConfiguration.cpp -c -o obj/KernelConfiguration.cpp.o
+
+obj/KernelParameters.cpp.o: src/KernelParameters.cpp include/cudacpp/KernelParameters.h
+	$(CC) $(CCFLAGS) src/KernelParameters.cpp -c -o obj/KernelParameters.cpp.o
+
+obj/Runtime.cpp.o: include/cudacpp/Runtime.h src/Runtime.cpp
+	$(CC) $(CCFLAGS) src/Runtime.cpp -c -o obj/Runtime.cpp.o
+
+obj/Stream.cpp.o: include/cudacpp/Stream.h src/Stream.cpp
+	$(CC) $(CCFLAGS) src/Stream.cpp -c -o obj/Stream.cpp.o
+
+obj/String.cpp.o: include/cudacpp/String.h src/String.cpp
+	$(CC) $(CCFLAGS) src/String.cpp -c -o obj/String.cpp.o
+
+clean:
+	rm -rvf *.ilk *.pdb *.ncb *.sln *.idb *.linkinfo obj/* bin/* $(LIB_OUTPUT)
