@@ -1,0 +1,1 @@
+This library wraps many of the essential 3.0 CUDA runtime types into C++ classes. The main goal of the library is to allow for easier compilation of code, especially when nvcc might choke on more advanced C++ features.
